@@ -9,5 +9,11 @@ public class MapProfile : Profile
     {
         CreateMap<User, AuthResponseDto>();
         CreateMap<AuthResponseDto, User>();
+        
+        CreateMap<User, RegisterDto>();
+        CreateMap<RegisterDto, User>();
+        
+        CreateMap<User, LoginDto>();
+        CreateMap<LoginDto, User>();
     }
 }

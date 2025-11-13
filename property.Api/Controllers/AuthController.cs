@@ -31,7 +31,7 @@ public class AuthController : ControllerBase
         }
         catch (Exception e)
         {
-            return StatusCode(500, new { message = e.Message });
+            return StatusCode(500, new { message = "Error interno del servidor ", details = e.Message });
         }
     }
 
@@ -82,7 +82,7 @@ public class AuthController : ControllerBase
         
         catch (Exception e)
         {
-            return StatusCode(500, new { message = "Error interno del servidor", details = e.Message });
+            return StatusCode(500, new { message = "Error interno del servidor", details = e.Message});
         }
     }
     

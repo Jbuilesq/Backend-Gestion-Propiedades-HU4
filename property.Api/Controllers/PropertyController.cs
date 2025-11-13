@@ -36,6 +36,7 @@ public class PropertyController : ControllerBase
     }
     
     [HttpPost]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> Create(Property property)
     {
         var created = await _propertyService.Create(property);

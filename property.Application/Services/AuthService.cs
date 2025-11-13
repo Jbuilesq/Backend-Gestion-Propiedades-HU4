@@ -6,7 +6,6 @@ using System.Text;
 using AutoMapper;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
-using Microsoft.IdentityModel.Tokens.Experimental;
 using property.Application.DTOs;
 using property.Application.Interfaces;
 using property.Domain.Entities;
@@ -27,7 +26,6 @@ public class AuthService : IAuthService
         _config = config;
     }
     
-    
     public async Task<AuthResponseDto> RegisterAsync(RegisterDto registerDto)
     {
         var users = await _repository.GetAllAsync();
@@ -40,8 +38,14 @@ public class AuthService : IAuthService
         user.CreatedAt = DateTime.UtcNow;
         user.UpatedAt = DateTime.UtcNow;
         user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(registerDto.PasswordHash);
+        
+        // Para registro, primero crear sin refresh token
+        user.RefreshToken = null;
+        user.RefreshTokenExpire = null;
 
         await _repository.CreateAsync(user);
+        
+        // Luego generar tokens (que actualizará el refresh token)
         return await GenerateTokens(user);
     }
 
@@ -50,7 +54,7 @@ public class AuthService : IAuthService
         var users = await _repository.GetAllAsync();
         var exist = users.FirstOrDefault(u => u.Email == loginDto.Email);
 
-        if (exist == null || !BCrypt.Net.BCrypt.Verify(exist.PasswordHash, loginDto.PasswordHash))
+        if (exist == null || !BCrypt.Net.BCrypt.Verify(loginDto.PasswordHash, exist.PasswordHash))
             throw new SecurityException("Credenciales invalidas");
 
         return await GenerateTokens(exist);
@@ -97,17 +101,17 @@ public class AuthService : IAuthService
         {
             new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
             new Claim(ClaimTypes.Email, user.Email),
-            new Claim(ClaimTypes.Name, user.userName),
+            new Claim(ClaimTypes.Name, user.userName), 
             new Claim(ClaimTypes.Role, user.Role)
         };
 
         var securityT = new JwtSecurityToken(
-            issuer: _config["Jwt:Key"],
-            audience:_config["Jwt:Audience"],
+            issuer: _config["Jwt:Issuer"],
+            audience: _config["Jwt:Audience"],
             claims: claims,
-            expires:DateTime.UtcNow.AddMinutes(2),
+            expires: DateTime.UtcNow.AddMinutes(1),
             signingCredentials: credentials
-            );
+        );
 
         return securityT;
     }
@@ -126,7 +130,7 @@ public class AuthService : IAuthService
         var principal = handler.ValidateToken(token, validateParams, out var securityToken);
 
         if (securityToken is not JwtSecurityToken jwtSecurityToken ||
-            !jwtSecurityToken.Header.Alg.Equals(Encoding.UTF8.GetBytes(_config["Jwt:Key"])))
+            !jwtSecurityToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256, StringComparison.InvariantCultureIgnoreCase))
             throw new SecurityException("Token invalido");
 
         return principal;
@@ -149,7 +153,6 @@ public class AuthService : IAuthService
         user.RefreshTokenExpire = DateTime.UtcNow.AddDays(7);
         user.UpatedAt = DateTime.UtcNow;
         
-
         await _repository.UpdateAsync(user);
 
         var responseDto = _mapper.Map<AuthResponseDto>(user);

@@ -4,7 +4,7 @@ using System.Text.Json;
 
 namespace property.Domain.Entities;
 
-public class Propierty
+public class Property
 {
     [Key]
     public int Id { get; set; }

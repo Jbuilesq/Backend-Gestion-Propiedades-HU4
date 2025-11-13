@@ -1,5 +1,10 @@
 using Microsoft.EntityFrameworkCore;
+using property.Application.Interfaces;
+using property.Application.Services;
+using property.Domain.Entities;
+using property.Domain.Infrastructure;
 using property.Infrastructure.Data;
+using property.Infrastructure.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -15,9 +20,24 @@ var connectionString = builder.Configuration.GetConnectionString("Default");
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseMySql(connectionString, MySqlServerVersion.AutoDetect(connectionString)));
 
+//añadimos los repositories
+builder.Services.AddScoped<IRepository<Property>, PropertiesRepository>();
+
+
+
+
+builder.Services.AddScoped<IPropertyService, PropertyService>();
+
+
+
+//---Controllers
+builder.Services.AddControllers();
 
 
 var app = builder.Build();
+
+app.MapControllers();
+
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

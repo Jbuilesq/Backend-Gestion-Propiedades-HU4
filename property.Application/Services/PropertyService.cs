@@ -1,3 +1,4 @@
+using property.Application.DTOs;
 using property.Application.Interfaces;
 using property.Domain.Entities;
 using property.Domain.Infrastructure;
@@ -8,10 +9,12 @@ public class PropertyService : IPropertyService
 {
     
     private IRepository<Property> _repository;
+    private readonly ICloudinaryService _cloudinaryService;
 
-    public PropertyService(IRepository<Property> propertyService)
+    public PropertyService(IRepository<Property> propertyService,ICloudinaryService cloudinaryService)
     {
         _repository = propertyService;
+        _cloudinaryService = cloudinaryService;
     }
     
     
@@ -25,12 +28,17 @@ public class PropertyService : IPropertyService
         return  await _repository.GetAByIdAsync(id);
     }
 
-    public async Task<Property> Create(Property property)
+    public async Task<Property> Create(Property property, UploadFileDto? image)
     {
         if (string.IsNullOrWhiteSpace(property.Title)) 
             throw new ArgumentNullException("The property title cannot be null or empty.");
         if (property.Price <= 0)
             throw new ArgumentException("El precio debe ser mayor a 0.");
+        if (image != null)
+        {
+            var imageUrl = await _cloudinaryService.UploadImageAsync(image);
+            property.ImagesJson = imageUrl;
+        }
         
         return await _repository.CreateAsync(property);
         

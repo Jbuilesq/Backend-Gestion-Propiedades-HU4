@@ -39,14 +39,10 @@ public class AuthService : IAuthService
         user.UpatedAt = DateTime.UtcNow;
         user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(registerDto.PasswordHash);
         
-        // Para registro, primero crear sin refresh token
-        user.RefreshToken = null;
-        user.RefreshTokenExpire = null;
-
-        await _repository.CreateAsync(user);
+        var userDto = await GenerateTokens(user);
         
-        // Luego generar tokens (que actualizará el refresh token)
-        return await GenerateTokens(user);
+        await _repository.CreateAsync(user);
+        return userDto;
     }
 
     public async Task<AuthResponseDto> LoginAsync(LoginDto loginDto)
@@ -109,7 +105,7 @@ public class AuthService : IAuthService
             issuer: _config["Jwt:Issuer"],
             audience: _config["Jwt:Audience"],
             claims: claims,
-            expires: DateTime.UtcNow.AddMinutes(1),
+            expires: DateTime.UtcNow.AddMinutes(10),
             signingCredentials: credentials
         );
 

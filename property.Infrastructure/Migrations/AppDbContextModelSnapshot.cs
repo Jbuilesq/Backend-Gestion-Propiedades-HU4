@@ -30,7 +30,6 @@ namespace property.Infrastructure.Migrations
                         .HasColumnType("longtext");
 
                     b.Property<string>("ImagesJson")
-                        .IsRequired()
                         .HasColumnType("longtext");
 
                     b.Property<string>("Localization")
@@ -67,10 +66,9 @@ namespace property.Infrastructure.Migrations
                         .HasColumnType("longtext");
 
                     b.Property<string>("RefreshToken")
-                        .IsRequired()
                         .HasColumnType("longtext");
 
-                    b.Property<DateTime>("RefreshTokenExpire")
+                    b.Property<DateTime?>("RefreshTokenExpire")
                         .HasColumnType("datetime(6)");
 
                     b.Property<string>("Role")

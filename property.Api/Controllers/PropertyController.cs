@@ -20,6 +20,7 @@ public class PropertyController : ControllerBase
 
 
     [HttpGet]
+    [Authorize]
     public async Task<IActionResult> GetAsync()
     {
         var property = await _propertyService.GetAll();
@@ -27,6 +28,7 @@ public class PropertyController : ControllerBase
     }
     
     [HttpGet("{id}")]
+    [Authorize]
     public async Task<IActionResult> GetById(int id)
     {
         var property = await _propertyService.GetById(id);
@@ -37,6 +39,7 @@ public class PropertyController : ControllerBase
     }
     
     [HttpPost]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> Create([FromForm] Property property, IFormFile? image)
     {
         UploadFileDto? dto = null;
@@ -56,6 +59,7 @@ public class PropertyController : ControllerBase
     }
     
     [HttpPut("{id}")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> Update(int id, Property property)
     {
         if (id != property.Id)

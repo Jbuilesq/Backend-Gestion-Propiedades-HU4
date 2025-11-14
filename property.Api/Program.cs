@@ -5,6 +5,8 @@ using property.Domain.Entities;
 using property.Domain.Infrastructure;
 using property.Infrastructure.Data;
 using property.Infrastructure.Repositories;
+using property.Infrastructure.Services;
+using property.Infrastructure.Settings;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -32,6 +34,15 @@ builder.Services.AddScoped<IPropertyService, PropertyService>();
 
 //---Controllers
 builder.Services.AddControllers();
+
+//Cloudinary
+//---------------------------------------------------
+builder.Services.Configure<CloudinarySettings>(
+    builder.Configuration.GetSection("CloudinarySettings")
+);
+
+builder.Services.AddScoped<ICloudinaryService, CloudinaryService>();
+//----------------------------------------------------
 
 
 var app = builder.Build();

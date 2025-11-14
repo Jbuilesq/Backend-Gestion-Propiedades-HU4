@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using property.Application.DTOs;
 using property.Application.Interfaces;
 using property.Domain.Entities;
 
@@ -36,9 +37,21 @@ public class PropertyController : ControllerBase
     }
     
     [HttpPost]
-    public async Task<IActionResult> Create(Property property)
+    public async Task<IActionResult> Create([FromForm] Property property, IFormFile? image)
     {
-        var created = await _propertyService.Create(property);
+        UploadFileDto? dto = null;
+
+        if (image != null)
+        {
+            dto = new UploadFileDto
+            {
+                FileName = image.FileName,
+                FileStream = image.OpenReadStream()
+            };
+        }
+
+        var created = await _propertyService.Create(property, dto);
+
         return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
     }
     

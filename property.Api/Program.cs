@@ -87,7 +87,24 @@ app.MapControllers();
 app.UseSwagger();
 app.UseSwaggerUI();
 
+
+var corsPolicyName = "AllowFrontend";
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy(name: corsPolicyName, policy =>
+    {
+        policy.WithOrigins("http://localhost:3000","https://backend-gestion-propiedades-hu4.onrender.com") // 👈 URL de tu frontend Next.js
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials(); // si envías cookies o headers de auth
+    });
+});
+
+
 app.UseHttpsRedirection();
+
+app.UseCors(corsPolicyName);
 
 var summaries = new[]
 {

@@ -81,7 +81,6 @@ app.MapControllers();
 app.UseSwagger();
 app.UseSwaggerUI();
 
-
 app.UseHttpsRedirection();
 
 var summaries = new[]

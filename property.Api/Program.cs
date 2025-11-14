@@ -1,4 +1,8 @@
+using System.Text;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using property.Application.DTOs;
 using property.Application.Interfaces;
 using property.Application.Services;
 using property.Domain.Entities;
@@ -25,12 +29,12 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 //añadimos los repositories
 builder.Services.AddScoped<IRepository<Property>, PropertiesRepository>();
 
-
-
-
 builder.Services.AddScoped<IPropertyService, PropertyService>();
+builder.Services.AddScoped<IRepository<User>, UserRepository>();
+builder.Services.AddScoped<IAuthService, AuthService>();
 
-
+// AutoMapper
+builder.Services.AddAutoMapper(typeof(MapProfile).Assembly);
 
 //---Controllers
 builder.Services.AddControllers();
@@ -43,6 +47,29 @@ builder.Services.Configure<CloudinarySettings>(
 
 builder.Services.AddScoped<ICloudinaryService, CloudinaryService>();
 //----------------------------------------------------
+
+
+builder.Services.AddAuthentication(options =>
+    {
+        options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+        options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+    })
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = builder.Configuration["Jwt:Issuer"],
+            ValidAudience = builder.Configuration["Jwt:Audience"],
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
+        };
+    });
+
+builder.Services.AddAuthorization();
+
 
 
 var app = builder.Build();
